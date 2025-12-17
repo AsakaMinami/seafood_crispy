@@ -8,33 +8,33 @@ use App\Models\Product;
 class BuyerController extends Controller
 {
     /**
-     * Menampilkan dashboard pembeli dengan produk yang dipaginasi
-     * untuk mencegah kehabisan memori.
+     * Dashboard buyer
+     * Menampilkan produk dengan pagination + search
      */
     public function index(Request $request)
     {
         $search = $request->input('search');
-        
-        // 1. Mulai query produk
-        $query = Product::query(); 
 
-        // 2. Terapkan pencarian jika ada
-        if ($search) {
-            $query->where('nama', 'like', "%{$search}%")
-                  ->orWhere('deskripsi', 'like', "%{$search}%");
-        }
-        
-        // 3. MENGGUNAKAN PAGINATION (SOLUSI UTAMA MASALAH MEMORI)
-        // Hanya memuat 12 produk per halaman ke dalam memori.
-        $products = $query->latest()->paginate(12);
+        // Query dasar produk
+        $products = Product::query()
+            ->when($search, function ($query, $search) {
+                $query->where('name', 'like', "%{$search}%")
+                      ->orWhere('description', 'like', "%{$search}%");
+            })
+            ->latest()
+            ->paginate(12)
+            ->withQueryString(); // agar search tidak hilang saat pindah halaman
 
         return view('buyer.dashboard', compact('products'));
     }
 
+    /**
+     * Detail produk
+     */
     public function show($id)
     {
         $product = Product::findOrFail($id);
-        // Pastikan nama view sudah benar
+
         return view('buyer.detail', compact('product'));
     }
 }

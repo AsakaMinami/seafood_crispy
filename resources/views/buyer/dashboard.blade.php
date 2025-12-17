@@ -103,10 +103,11 @@
                     <a href="{{ route('buyer.products.show', $product->id) }}" class="btn-detail">
                         <i class="bi bi-eye"></i> Lihat Detail
                     </a>
+                        
                     <form action="{{ route('buyer.cart.add', $product->id) }}" method="POST" class="mt-2">
-    @csrf
-    <button type="submit" class="btn btn-primary btn-sm">🛒 Tambah ke Keranjang</button>
-</form>
+            @csrf
+                <button type="submit" class="btn btn-primary btn-sm">🛒 Tambah ke Keranjang</button>
+            </form>
 
                 </div>
             </div>

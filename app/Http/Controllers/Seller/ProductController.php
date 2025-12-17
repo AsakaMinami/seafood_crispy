@@ -4,150 +4,136 @@ namespace App\Http\Controllers\Seller;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
-use App\Models\Product; // Pastikan model Product di-import
-use Illuminate\Support\Facades\Auth; // Import kelas Auth
-use Illuminate\Support\Facades\Storage; // Import kelas Storage
+use App\Models\Product;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Storage;
 
 class ProductController extends Controller
 {
-
-    /**
-     * Terapkan middleware untuk otentikasi peran.
-     */
     public function __construct()
     {
         $this->middleware(['auth', 'role:seller']);
     }
 
     /**
-     * Tampilkan daftar semua produk penjual.
+     * Tampilkan semua produk milik seller
      */
     public function index()
     {
+        $products = Product::where('seller_id', Auth::id())
+            ->latest()
+            ->get();
 
-        // Ambil hanya produk yang dimiliki oleh penjual yang sedang login
-        $products = Auth::user()->products()->latest()->get();
         return view('seller.products.index', compact('products'));
     }
 
     /**
-     * Tampilkan formulir untuk membuat produk baru.
+     * Form tambah produk
      */
     public function create()
     {
-        // Logika untuk menampilkan formulir tambah produk
         return view('seller.products.create');
     }
 
     /**
-     * Simpan produk baru ke database.
+     * Simpan produk baru
      */
     public function store(Request $request)
     {
-        // 1. Validasi data yang masuk
         $request->validate([
-            'name' => 'required|string|max:255',
+            'name'        => 'required|string|max:255',
             'description' => 'required|string',
-            'price' => 'required|numeric|min:0',
-            'stock' => 'required|integer|min:0',
-            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+            'price'       => 'required|numeric|min:0',
+            'stock'       => 'required|integer|min:0',
+            'image'       => 'required|image|mimes:jpg,jpeg,png|max:2048',
         ]);
 
-        // 2. Upload gambar jika ada
-        $imagePath = null;
-        if ($request->hasFile('image')) {
-            $imagePath = $request->file('image')->store('products', 'public');
-        }
+        // upload gambar
+        $path = $request->file('image')->store('products', 'public');
 
-        // 3. Simpan produk ke database
-        Auth::user()->products()->create([
-            'name' => $request->name,
+        Product::create([
+            'seller_id'   => Auth::id(),
+            'name'        => $request->name,
             'description' => $request->description,
-            'price' => $request->price,
-            'stock' => $request->stock,
-            'image' => $imagePath,
+            'price'       => $request->price,
+            'stock'       => $request->stock,
+            'image'       => $path,
         ]);
 
-        // 4. Arahkan pengguna kembali dengan pesan sukses
-        return redirect()->route('seller.products.index')->with('success', 'Produk berhasil ditambahkan!');
-    }
-
-   /**
-     * Tampilkan produk tertentu.
-     */
-    public function show($id)
-    {
-        // Logika untuk menampilkan satu produk
+        return redirect()
+            ->route('seller.products.index')
+            ->with('success', 'Produk berhasil ditambahkan');
     }
 
     /**
-     * Tampilkan formulir untuk mengedit produk.
+     * Form edit produk
      */
     public function edit(Product $product)
     {
-        // Pastikan penjual hanya bisa mengedit produk mereka sendiri
-        if ($product->user_id !== Auth::id()) {
-            abort(403, 'Akses Ditolak');
+        if ($product->seller_id !== Auth::id()) {
+            abort(403, 'Akses ditolak');
         }
+
         return view('seller.products.edit', compact('product'));
     }
 
     /**
-     * Perbarui produk di database.
+     * Update produk
      */
     public function update(Request $request, Product $product)
     {
-        // Pastikan penjual hanya bisa memperbarui produk mereka sendiri
-        if ($product->user_id !== Auth::id()) {
-            abort(403, 'Akses Ditolak');
+        if ($product->seller_id !== Auth::id()) {
+            abort(403, 'Akses ditolak');
         }
 
         $request->validate([
-            'name' => 'required|string|max:255',
+            'name'        => 'required|string|max:255',
             'description' => 'required|string',
-            'price' => 'required|numeric|min:0',
-            'stock' => 'required|integer|min:0',
-            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+            'price'       => 'required|numeric|min:0',
+            'stock'       => 'required|integer|min:0',
+            'image'       => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
         ]);
 
         if ($request->hasFile('image')) {
-            // Hapus gambar lama jika ada
             if ($product->image) {
                 Storage::disk('public')->delete($product->image);
             }
+
             $imagePath = $request->file('image')->store('products', 'public');
         } else {
             $imagePath = $product->image;
         }
 
         $product->update([
-            'name' => $request->name,
+            'name'        => $request->name,
             'description' => $request->description,
-            'price' => $request->price,
-            'stock' => $request->stock,
-            'image' => $imagePath,
+            'price'       => $request->price,
+            'stock'       => $request->stock,
+            'image'       => $imagePath,
         ]);
 
-        return redirect()->route('seller.products.index')->with('success', 'Produk berhasil diperbarui!');
+        return redirect()
+            ->route('seller.products.index')
+            ->with('success', 'Produk berhasil diperbarui');
     }
 
     /**
-     * Hapus produk dari database.
+     * Hapus produk
      */
     public function destroy(Product $product)
     {
-        // Pastikan penjual hanya bisa menghapus produk mereka sendiri
-        if ($product->user_id !== Auth::id()) {
-            abort(403, 'Akses Ditolak');
+        if ($product->seller_id !== Auth::id()) {
+            abort(403, 'Akses ditolak');
         }
 
-        // Hapus gambar dari penyimpanan
         if ($product->image) {
             Storage::disk('public')->delete($product->image);
         }
 
         $product->delete();
 
-        return redirect()->route('seller.products.index')->with('success', 'Produk berhasil dihapus!');
+        return redirect()
+            ->route('seller.products.index')
+            ->with('success', 'Produk berhasil dihapus');
     }
 }

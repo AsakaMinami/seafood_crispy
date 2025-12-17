@@ -43,12 +43,10 @@
 
         <div class="text-end mt-4">
             <h4>Total: <span class="text-warning">Rp{{ number_format($total, 0, ',', '.') }}</span></h4>
-            <form action="{{ route('buyer.cart.checkout') }}" method="POST">
-                @csrf
-                <button class="btn btn-success mt-3">
-                    <i class="bi bi-credit-card"></i> Checkout
-                </button>
-            </form>
+<a href="{{ route('buyer.checkout') }}" class="btn btn-success mt-3">
+    Checkout
+</a>
+
         </div>
     @else
         <div class="text-center py-5">

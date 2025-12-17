@@ -14,7 +14,7 @@ class DashboardController extends Controller
     {
         $sellerId = Auth::id();
 
-        $productsCount = Product::where('user_id', $sellerId)->count();
+        $productsCount = Product::where('seller_id', $sellerId)->count();
 
         // hanya satu return view
         return view('seller.dashboard', compact('productsCount'));
@@ -22,7 +22,7 @@ class DashboardController extends Controller
 
     public function pesanan()
     {
-        $orders = Order::where('user_id', Auth::id())->latest()->paginate(10);
+        $orders = Order::where('seller_id', Auth::id())->latest()->paginate(10);
 
         return view('seller.pesanan', compact('orders'));
     }

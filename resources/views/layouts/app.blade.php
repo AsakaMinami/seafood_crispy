@@ -139,11 +139,10 @@
                     <i class="fas fa-box"></i> Products
                 </a>
 
-                <li class="nav-item">
-                    <a class="nav-link {{ Request::is('seller/pesanan') ? 'active' : '' }}" href="{{ route('seller.pesanan') }}">
-                        <i class="fas fa-shopping-cart"></i> Pesanan
-                    </a>
-                </li>
+{{-- KODE PESANAN SUDAH DIPERBAIKI --}}
+        <a href="{{ route('seller.pesanan') }}" class="list-group-item list-group-item-action {{ Request::is('seller/pesanan*') ? 'active' : '' }}">
+            <i class="fas fa-shopping-cart"></i> Pesanan
+        </a>
                 
                 {{-- MENU USER HANYA UNTUK ADMIN --}}
                 @if (Auth::check() && Auth::user()->role === 'admin')

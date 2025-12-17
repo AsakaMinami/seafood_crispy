@@ -1,51 +1,72 @@
 @extends('layouts.buyer')
 
 @section('content')
-<div class="container py-5 text-white">
-    <h2 class="fw-bold mb-4 text-center">Daftar Pesanan Saya</h2>
+<div class="container py-5">
 
-    @if($orders->isEmpty())
-        <div class="text-center py-5">
-            <p class="fs-5 text-light">Kamu belum memiliki pesanan.</p>
-            <a href="{{ route('buyer.dashboard') }}" class="btn btn-outline-light rounded-pill mt-3">
-                Belanja Sekarang
-            </a>
+    {{-- JUDUL --}}
+    <div class="text-center mb-5 p-3 rounded-4 mx-auto"
+         style="background: linear-gradient(135deg, #2563eb, #1e3a8a);
+                color: white;
+                max-width: 500px;">
+        <h4 class="mb-0">Daftar Pesanan</h4>
+    </div>
+
+    <div class="row g-4 justify-content-center">
+
+        @forelse ($orders as $order)
+
+        {{-- CARD PESANAN --}}
+        <div class="col-md-6 col-lg-4">
+
+            <div class="p-4 rounded-4 shadow h-100"
+                 style="
+                    background: linear-gradient(180deg, #0f172a, #020617);
+                    border: 1px solid rgba(255,255,255,0.08);
+                 ">
+
+                <div class="text-center">
+
+                    <img src="{{ asset('storage/' . $order->product->image) }}"
+                         class="img-fluid rounded mb-3"
+                         style="max-width: 120px;"
+                         alt="{{ $order->product->name }}">
+
+                    <h6 class="fw-bold text-white mb-1">
+                        {{ $order->product->name }}
+                    </h6>
+
+                    <p class="text-info mb-3 small">
+                        Rp {{ number_format($order->product->price, 0, ',', '.') }}
+                    </p>
+
+                    <div class="text-start text-light small">
+                        <p class="mb-1"><b>Nama:</b> {{ $order->nama_penerima ?? '-' }}</p>
+                        <p class="mb-1"><b>Alamat:</b> {{ $order->alamat ?? '-' }}</p>
+                        <p class="mb-1"><b>No HP:</b> {{ $order->no_hp ?? '-' }}</p>
+                        <p class="mb-0">
+                            <b>Status:</b>
+                            <span class="badge 
+                                @if($order->status == 'pending') bg-warning text-dark
+                                @elseif($order->status == 'selesai') bg-success
+                                @else bg-secondary @endif">
+                                {{ ucfirst($order->status) }}
+                            </span>
+                        </p>
+                    </div>
+
+                </div>
+
+            </div>
+
         </div>
-    @else
-        <div class="table-responsive">
-            <table class="table table-dark table-striped align-middle text-center">
-                <thead class="table-primary text-dark">
-                    <tr>
-                        <th>#</th>
-                        <th>Produk</th>
-                        <th>Jumlah</th>
-                        <th>Total Harga</th>
-                        <th>Status</th>
-                        <th>Tanggal Pesanan</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @foreach($orders as $index => $order)
-                        <tr>
-                            <td>{{ $index + 1 }}</td>
-                            <td>{{ $order->product->name ?? '-' }}</td>
-                            <td>{{ $order->quantity ?? 1 }}</td>
-                            <td>Rp{{ number_format($order->total_price ?? 0, 0, ',', '.') }}</td>
-                            <td>
-                                <span class="badge 
-                                    @if($order->status == 'pending') bg-warning text-dark
-                                    @elseif($order->status == 'completed') bg-success
-                                    @else bg-secondary
-                                    @endif">
-                                    {{ ucfirst($order->status ?? 'pending') }}
-                                </span>
-                            </td>
-                            <td>{{ $order->created_at->format('d M Y') }}</td>
-                        </tr>
-                    @endforeach
-                </tbody>
-            </table>
+
+        @empty
+        <div class="text-center text-light mt-5">
+            <i class="bi bi-bag-x fs-1"></i>
+            <p class="mt-3">Belum ada pesanan.</p>
         </div>
-    @endif
+        @endforelse
+
+    </div>
 </div>
 @endsection
